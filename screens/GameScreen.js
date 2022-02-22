@@ -9,6 +9,7 @@ import {
   Alert,
   ScrollView,
   FlatList,
+  Dimensions
 } from "react-native";
 
 import NumberContainer from "../components/NumberContainer";
@@ -48,6 +49,21 @@ const GameScreen = (props) => {
   const initialGuess = generateBetween(1, 100, props.userChoice);
   const [currentGuess, setCurrentGuess] = useState(initialGuess);
   const [guesses, setGuesses] = useState([initialGuess.toString()]);
+  const [widthValue, setWidthValue] = useState(Dimensions.get('window').width);
+  const [heightValue, setHeightValue] = useState(Dimensions.get('window').height);
+
+  useEffect(() => {
+    const updateHeightAndWidth = () => {
+      setHeightValue(Dimensions.get('window').height);
+      setWidthValue(Dimensions.get('window').width);
+    }
+  
+    const dimensionsSubscription = Dimensions.addEventListener("change", updateHeightAndWidth);
+
+    return () => {
+     dimensionsSubscription?.remove()
+    }
+  })
 
   const currentLow = useRef(1);
   const currentHigh = useRef(100);
@@ -85,6 +101,33 @@ const GameScreen = (props) => {
     setGuesses((cur) => [nextNumber.toString(), ...cur]);
   };
 
+  if (heightValue < 500) {  
+    return (
+      <View style={styles.screen}>
+        <Text>Opponent's Guess</Text>
+        <View style = {styles.buttonGuessButtonTopView}>
+        <MainButton onPress={nextGuessHandler.bind(this, "lower")}>
+            <Ionicons name="md-remove" size={24} color="white" />
+          </MainButton>
+        <NumberContainer>{currentGuess}</NumberContainer>
+        {/* <Card style={styles.buttonContainer}> */}
+          <MainButton onPress={nextGuessHandler.bind(this, "higher")}>
+            <Ionicons name="md-add" size={24} color="white" />
+          </MainButton>
+          </View>
+        {/* </Card> */}
+        <View style={styles.list}>
+          {/* <ScrollView contentContainerStyle={styles.scrollStyle}>
+            {guesses.map((guess, index) =>
+              renderListItem(guess, guesses.length - index)
+            )}
+          </ScrollView> */}
+          <FlatList contentContainerStyle={styles.scrollStyle} keyExtractor={(item) => item} data={guesses} renderItem={renderListItem.bind(this, guesses.length)}></FlatList>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.screen}>
       <Text>Opponent's Guess</Text>
@@ -120,12 +163,12 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginTop: 20,
+    marginTop: Dimensions.get('window').height > 600 ? 20 : 5,
     width: 400,
     maxWidth: "90%",
   },
   list: {
-    width: "60%",
+    width: Dimensions.get('window').width > 350 ? "60%" : "80%",
     flex: 1
   },
   scrollStyle: {
@@ -143,4 +186,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "100%",
   },
+  buttonGuessButtonTopView: {
+    flexDirection: 'row',
+    justifyContent: "space-around",
+    width: Dimensions.get('window').width * 0.85,
+    alignItems: "center",
+  }
 });

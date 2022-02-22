@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -7,6 +7,10 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
+  Dimensions,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform
 } from "react-native";
 
 import Card from "../components/Card";
@@ -19,6 +23,21 @@ const StartScreen = (props) => {
   const [enteredValue, setEnteredValue] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [selectedNumber, setSelectedNumber] = useState();
+  const [widthValue, setWidthValue] = useState(Dimensions.get('window').width);
+  const [heightValue, setHeightValue] = useState(Dimensions.get('window').height);
+
+  useEffect(() => {
+    const updateHeightAndWidth = () => {
+      setHeightValue(Dimensions.get('window').height);
+      setWidthValue(Dimensions.get('window').width);
+    }
+  
+    const dimensionsSubscription = Dimensions.addEventListener("change", updateHeightAndWidth);
+
+    return () => {
+     dimensionsSubscription?.remove()
+    }
+  })
 
   const validateInput = (input) => {
     /**
@@ -26,6 +45,8 @@ const StartScreen = (props) => {
      */
     setEnteredValue(input.replace(/[^0-9]/g, ""));
   };
+
+ 
 
   const resetInput = () => {
     setEnteredValue("");
@@ -71,6 +92,8 @@ const StartScreen = (props) => {
   }
 
   return (
+    <ScrollView>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset = {20}>
     <TouchableWithoutFeedback
       onPress={() => {
         Keyboard.dismiss();
@@ -78,7 +101,7 @@ const StartScreen = (props) => {
     >
       <View style={styles.screen}>
         <Text style={styles.title}>Start a New Game</Text>
-        <Card style={styles.inputContainer}>
+        <Card style={{...styles.inputContainer, width: widthValue * 0.85}}>
           <Text>Select a Number</Text>
           <Input
             style={styles.input}
@@ -88,7 +111,7 @@ const StartScreen = (props) => {
             onChangeText={validateInput}
           />
           <View style={styles.buttonsView}>
-            <View style={styles.button}>
+            <View style={{...styles.button, width: widthValue > 600 ? 100 : 90}}>
               <Button
                 title="Reset"
                 onPress={resetInput}
@@ -107,6 +130,8 @@ const StartScreen = (props) => {
         {confirmedOutput}
       </View>
     </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+    </ScrollView>
   );
 };
 
@@ -125,8 +150,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   inputContainer: {
-    width: 300,
-    maxWidth: "80%",
+    width: Dimensions.get('window').width * 0.85,
+    // maxWidth: "80%",
     alignItems: "center",
   },
   title: {
@@ -135,7 +160,7 @@ const styles = StyleSheet.create({
     fontFamily: 'open-sans-bold'
   },
   button: {
-    width: 100,
+    width: Dimensions.get('window').width > 400 ? 100 : 90,
   },
   input: {
     width: 50,
